@@ -1,85 +1,100 @@
-# recruiter-match
-this is our second project
-# TalentMatch AI
+# TalentMatch AI – Autonomous Recruiting Agent
 
-TalentMatch AI is an AI-powered recruitment system that allows recruiters to search resumes using natural language instead of exact keywords.
+## Overview
 
-The project uses:
+TalentMatch AI is an intelligent recruitment platform that streamlines the hiring process using Artificial Intelligence, semantic search, and autonomous agent workflows. The system enables recruiters to upload resumes, manage job postings, search candidates using vector similarity, and automatically generate hiring recommendations.
 
-- FastAPI
-- Streamlit
-- LangChain
-- ChromaDB
-- HuggingFace Embeddings
-- Groq LLM
-- SQLite
-- RAG (Retrieval-Augmented Generation)
+The project integrates **FastAPI**, **LangGraph**, **ChromaDB**, **Streamlit**, and **Large Language Models (LLMs)** to build an end-to-end AI-powered recruitment assistant capable of planning, searching, evaluating, and reporting with minimal human intervention.
 
 ---
 
-# Features
+## Key Features
 
-## Module 1 – Semantic Resume Search
+### Resume Management
+- Upload and parse PDF resumes
+- Extract candidate information automatically
+- Generate and store vector embeddings in ChromaDB
+- Semantic resume retrieval
 
-- Upload PDF resumes
-- Store embeddings in ChromaDB
-- Semantic search
-- Metadata filters
-- Similarity score
-- AI explanation
+### Job Management
+- Create and manage job postings
+- Upload job descriptions
+- Evaluate job quality
+- Generate AI-powered job improvement suggestions
 
----
+### Intelligent Candidate Search
+- Semantic candidate matching
+- Metadata-based filtering
+- Similarity score ranking
+- Candidate profile summaries
 
-## Module 2 – Candidate Summary
-
-Generate
-
-- Candidate strengths
-- Weaknesses
-- Best roles
-
-using Groq LLM.
-
----
-
-## Module 3 – Interview Questions
-
-Generate personalized interview questions based on
-
-- Candidate Resume
-- Job Description
-
----
-
-## Module 4 – Job Description Improvement
-
-Analyze a job description and suggest improvements using recruiter AI.
+### Autonomous Recruiting Agent
+- Accepts recruiter goals in natural language
+- Automatically selects the appropriate job posting
+- Retrieves job requirements
+- Searches candidates using semantic similarity
+- Evaluates and ranks candidates
+- Performs adaptive planning and search expansion
+- Generates AI-based candidate summaries
+- Creates tailored interview questions
+- Performs self-validation before finalizing recommendations
+- Reviews job posting quality
+- Produces a comprehensive hiring report with execution trace
 
 ---
 
-## Module 5
+# System Architecture
 
-Reserved.
+```
+Recruiter Goal
+       │
+       ▼
+Job Selection
+       │
+       ▼
+Requirement Extraction
+       │
+       ▼
+Semantic Candidate Search
+       │
+       ▼
+Candidate Evaluation
+       │
+       ▼
+Candidate Summaries
+       │
+       ▼
+Interview Question Generation
+       │
+       ▼
+Self Validation
+       │
+       ▼
+Hiring Report
+```
 
 ---
 
-## Module 6 – Conversation Memory
+# Technology Stack
 
-Store recruiter conversations using SQLite.
-
----
-
-# Technologies
-
+## Backend
 - Python
 - FastAPI
-- Streamlit
-- LangChain
-- ChromaDB
-- HuggingFace
-- Groq
+- SQLAlchemy
 - SQLite
-- PyMuPDF
+
+## Artificial Intelligence
+- LangGraph
+- ChromaDB
+- HuggingFace Embeddings
+- Sentence Transformers
+- Groq LLM
+
+## Frontend
+- Streamlit
+
+## Vector Database
+- ChromaDB
 
 ---
 
@@ -87,136 +102,210 @@ Store recruiter conversations using SQLite.
 
 ```
 TalentMatch-AI/
-
-│── app.py
-
-│── config.py
-
-│── database.py
-
-│── llm.py
-
-│── rag.py
-
-│── schemas.py
-
-│── services.py
-
-│── streamlit_app.py
-
-│── utils.py
-
-│── requirements.txt
-
-│── .env
-
-│── uploads/
-
-│── chroma_db/
-
-│── data/
-
-└── tests/
+│
+├── app/
+│   ├── agent/
+│   │   ├── planner_node.py
+│   │   ├── search_node.py
+│   │   ├── evaluator_node.py
+│   │   ├── summary_node.py
+│   │   ├── interview_node.py
+│   │   ├── self_check_node.py
+│   │   ├── report_node.py
+│   │   ├── agent_runner.py
+│   │   └── tools.py
+│   │
+│   ├── database.py
+│   ├── services.py
+│   ├── rag.py
+│   ├── schemas.py
+│   ├── utils.py
+│   ├── config.py
+│   └── main.py
+│
+├── chroma_db/
+├── data/
+├── frontend/
+├── scripts/
+├── tests/
+├── uploads/
+│
+├── requirements.txt
+├── README.md
+└── .env
 ```
 
 ---
 
 # Installation
 
-## Create Virtual Environment
+## Clone the Repository
 
+```bash
+git clone https://github.com/your-username/TalentMatch-AI.git
+
+cd TalentMatch-AI
 ```
+
+---
+
+## Create a Virtual Environment
+
+```bash
 python -m venv venv
 ```
 
-Activate
-
 Windows
 
-```
+```bash
 venv\Scripts\activate
 ```
 
-Linux
+Linux/macOS
 
-```
+```bash
 source venv/bin/activate
 ```
 
 ---
 
-## Install Packages
+## Install Dependencies
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## Configure API Key
+## Configure Environment Variables
 
-Create
+Create a `.env` file in the project root.
 
-```
-.env
-```
-
-Add
-
-```
-GROQ_API_KEY=YOUR_GROQ_API_KEY
+```env
+GROQ_API_KEY=your_api_key
 ```
 
 ---
 
-# Run FastAPI
+# Running the Application
+
+## Start the FastAPI Backend
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Backend URL
 
 ```
-uvicorn app:app --reload
-```
-
-Swagger
-
-```
-http://127.0.0.1:8000/docs
+http://127.0.0.1:8000
 ```
 
 ---
 
-# Run Streamlit
+## Launch the Streamlit Interface
 
-```
-streamlit run streamlit_app.py
+```bash
+streamlit run frontend/streamlit_app.py
 ```
 
 ---
 
 # API Endpoints
 
-| Method | Endpoint |
+| Module | Endpoint |
 |---------|----------|
-| POST | /resume |
-| POST | /job |
-| POST | /search |
-| POST | /candidate/{id}/summary |
-| POST | /jobs/{job_id}/candidate/{candidate_id}/interview-questions |
-| POST | /jobs/{id}/improve |
-| POST | /sessions/{id}/ask |
-| GET | /sessions/{id} |
+| Upload Resume | POST `/resume` |
+| Upload Job | POST `/upload-job` |
+| Create Job | POST `/jobs` |
+| Search Candidates | POST `/search` |
+| Candidate Summary | GET `/candidate/{candidate_id}/summary` |
+| Interview Questions | GET `/jobs/{job_id}/candidates/{candidate_id}/interview-questions` |
+| Improve Job | GET `/jobs/{job_id}/improve` |
+| Job Quality | POST `/job-quality` |
+| AI Recruiting Agent | POST `/agent/fill-role` |
+| Agent Status | GET `/agent/runs/{run_id}` |
 
 ---
 
-# Search Example
+# Autonomous Recruiting Workflow
+
+The AI Recruiting Agent follows a structured multi-step workflow:
+
+1. Recruiter submits a hiring goal.
+2. The Planner Node analyzes the goal and creates an adaptive execution plan.
+3. The Search Node retrieves the relevant job requirements and performs semantic candidate search.
+4. The Evaluator Node ranks candidates based on similarity scores and recruiter priorities.
+5. The Summary Node generates concise candidate summaries.
+6. The Interview Node creates role-specific interview questions.
+7. The Self-Check Node validates the shortlist and refines recommendations.
+8. The Report Node compiles a comprehensive hiring report.
+
+---
+
+# Sample Hiring Report
 
 ```
-Find Python developers with Docker experience
-and at least 3 years experience.
+Recruiter Goal
+--------------
+Hire an experienced Frontend React Developer.
+
+Workflow Status
+---------------
+Completed
+
+Top Candidates
+--------------
+Ali Ahmed
+Similarity Score: 94%
+
+Sara Khan
+Similarity Score: 91%
+
+Usman Ali
+Similarity Score: 89%
+
+Job Quality
+-----------
+Good
+
+Execution Trace
+---------------
+✓ Planning
+✓ Candidate Search
+✓ Evaluation
+✓ Summary Generation
+✓ Interview Question Generation
+✓ Self Validation
+✓ Final Report
 ```
+
+---
+
+# Future Enhancements
+
+- User authentication and authorization
+- PostgreSQL integration
+- Docker containerization
+- Cloud deployment (AWS/Azure)
+- OCR-based resume parsing
+- Email interview scheduling
+- Recruiter analytics dashboard
+- Batch candidate evaluation
+- Multi-language resume support
 
 ---
 
 # Author
 
-TalentMatch AI
+**Rahima Qamar**
 
-Epazz Internship Week 2 Capstone Project
+Software Engineering Student
+
+TalentMatch AI – Autonomous Recruiting Agent
+
+---
+
+# License
+
+This project is intended for educational, research, and demonstration purposes.

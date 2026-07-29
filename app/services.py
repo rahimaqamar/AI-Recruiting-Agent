@@ -833,6 +833,7 @@ def get_candidate_detail(candidate_id, job_description):
         "missing_skills": missing,
         "experience": resume.experience,
         "education": resume.education,
+        "location" : resume.location,
         "interview_questions": questions,
         "resume_file": resume.file_name
     }
