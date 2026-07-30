@@ -1,3 +1,8 @@
+# The Evaluator node checks whether the Search node has returned accurate and relevant candidates. 
+# It filters candidates based on the required skills, evaluates and ranks them 
+# using similarity scores, and creates a shortlist. If there are not enough strong candidates, 
+# it automatically broadens the search to find additional 
+# suitable candidates.
 """
 Evaluator Node
 

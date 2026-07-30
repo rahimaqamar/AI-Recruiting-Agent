@@ -1,10 +1,16 @@
+# The Summary node receives the shortlisted candidates from the Evaluator node 
+# and generates concise summaries highlighting each candidate's qualifications, 
+# skills, experience, and suitability for the job. 
+# These summaries are stored in AgentState and passed to the Interview node.
+
 """
 Summary Node
 
 Generates candidate summaries.
 """
-
+# state that updated
 from app.agent.agent_state import AgentState
+#  tool use for generate summary
 from app.agent.tools import candidate_summary_tool
 
 
@@ -14,6 +20,8 @@ def summary_node(state: AgentState) -> AgentState:
     """
 
     state["status"] = "summaries"
+    # add a log message to the execution history
+    # useful for debugging and tracing
 
     state["trace"].append(
         "Generating candidate summaries..."
@@ -24,6 +32,7 @@ def summary_node(state: AgentState) -> AgentState:
     shortlisted = state.get("shortlisted_candidates", [])
 
     # ↓↓↓ Adaptive Planning: hardcoded limit ki jagah goal-based plan se lo ↓↓↓
+    # read the adaptive plan
     max_candidates = state.get("plan", {}).get("min_candidates_to_review", 10)
 
     if len(shortlisted) > max_candidates:
@@ -34,7 +43,9 @@ def summary_node(state: AgentState) -> AgentState:
     # ↑↑↑ Adaptive Planning ↑↑↑
 
     print(f"[summary_node] Starting summaries for {len(shortlisted)} candidate(s)...", flush=True)
-
+    # Python's built-in enumerate() function to loop 
+    # through a list while also keeping track of the position (index) of each item.
+    # number ka sath name 
     for index, candidate in enumerate(shortlisted, start=1):
 
         if isinstance(candidate, dict):

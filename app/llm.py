@@ -3,6 +3,9 @@
 # Large Language Model Functions
 # ==========================================
 
+import json
+import re
+
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage
 
@@ -297,8 +300,11 @@ Resume:
     except Exception as e:
         print(f"Category suggestion failed: {e}")
         return "General"
-    # extract the numbers 
-import re
+
+
+# ==========================================
+# Extract Result Count
+# ==========================================
 
 def extract_result_count_with_llm(query):
 
@@ -332,4 +338,70 @@ def extract_result_count_with_llm(query):
     if match:
         return int(match.group())
 
-    return 
+    return 5
+
+
+# ==========================================
+# Extract Resume Info (Domain-Agnostic)
+# ==========================================
+# Purana approach: utils.py mein hardcoded SKILLS/EDUCATION list se
+# keyword matching hoti thi — jo sirf tech resumes (Python, React,
+# Docker...) ke liye kaam karti thi. Accounting/marketing/medical
+# resumes pe fail ho jaati thi (name = "Unknown", skills = blank).
+#
+# Naya approach: ek hi LLM call se resume ko "samajh" kar name,
+# education, experience, skills, location — sab kuch nikalta hai.
+# Kisi bhi domain ke resume pe kaam karta hai, koi hardcoded list
+# maintain nahi karni padti.
+
+def extract_resume_info_with_llm(resume_text):
+    try:
+        prompt = f"""
+You are an expert resume parser. Read the resume below and extract structured information.
+
+Resume:
+{resume_text}
+
+Return ONLY a valid JSON object (no markdown, no code fences, no extra text) in exactly this format:
+{{
+  "name": "candidate's full name as written in the resume",
+  "education": "highest degree/qualification, written naturally (e.g. 'B.Com in Accounting', 'ACCA', 'BS Computer Science')",
+  "experience_years": 0.0,
+  "skills": ["skill1", "skill2", "skill3"],
+  "location": "city mentioned in the resume, or Unknown if not found"
+}}
+
+Rules:
+- "experience_years" must be a number (float) — your best estimate of total years of professional experience based on the resume content.
+- "skills" should list 5-15 relevant skills/tools mentioned in the resume, in the candidate's own domain (accounting, software, marketing, medical, etc.) — do not limit to any specific industry.
+- If a field cannot be found, use "Unknown" for text fields, 0.0 for experience_years, and [] for skills.
+- Do not invent information not present in the resume.
+"""
+
+        response = llm.invoke([HumanMessage(content=prompt)])
+        text = response.content.strip()
+
+        # Kabhi kabhi model ```json ... ``` fences add kar deta hai — hata do
+        if text.startswith("```"):
+            text = text.strip("`")
+            text = text.replace("json\n", "", 1).replace("json", "", 1).strip()
+
+        data = json.loads(text)
+
+        return {
+            "name": data.get("name") or "Unknown",
+            "education": data.get("education") or "Unknown",
+            "experience": float(data.get("experience_years") or 0.0),
+            "skills": data.get("skills") or [],
+            "location": data.get("location") or "Unknown",
+        }
+
+    except Exception as e:
+        print(f"LLM resume info extraction failed: {e}")
+        return {
+            "name": "Unknown",
+            "education": "Unknown",
+            "experience": 0.0,
+            "skills": [],
+            "location": "Unknown",
+        }

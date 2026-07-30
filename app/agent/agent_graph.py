@@ -6,6 +6,9 @@ LangGraph Workflow
 
 Connects all Week 3 agent nodes.
 """
+# stategraph: create a workflow graph
+# start: beginning of workflow
+# end: end of workflow
 
 from langgraph.graph import StateGraph, START, END
 

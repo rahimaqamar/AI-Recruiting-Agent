@@ -1,12 +1,15 @@
+# Its job is to understand the recruiter's goal, create an adaptive plan, 
+# store it in AgentState, 
+# and pass the updated state to the next node (search.py).
 """
 Planner Node
-
 First node of the recruiting workflow.
 Initializes the workflow, parses the goal (Adaptive Planning),
 and updates live status.
 """
 
 import re
+# import the shared state
 from app.agent.agent_state import AgentState
 
 
@@ -16,7 +19,7 @@ def parse_goal(goal: str) -> dict:
     Ye hi Adaptive Planning ka core hai — hardcoded values
     ki jagah goal text khud decide karta hai agent ka behavior.
     """
-
+# create a default plan if recuriter not give goal then plan execute
     plan = {
         "min_candidates_to_review": 10,
         "priority_skills": [],

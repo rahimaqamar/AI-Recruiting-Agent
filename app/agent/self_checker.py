@@ -1,10 +1,12 @@
+# Its job is not to search, evaluate, or generate anything new. Instead, it checks whether 
+# all previous nodes completed their work correctly before the final report is created.
+# basically check for quality
 """
 Self Checker Node
 
 Validates the workflow before generating
 the final report.
 """
-
 from app.agent.agent_state import AgentState
 
 

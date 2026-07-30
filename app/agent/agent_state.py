@@ -1,3 +1,5 @@
+# AgentState tells the graph what data will be shared between all nodes.
+
 from typing import TypedDict, List, Dict, Any
 class AgentState(TypedDict):
 

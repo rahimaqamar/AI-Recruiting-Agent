@@ -34,7 +34,8 @@ def interview_node(state: AgentState) -> AgentState:
     # ↑↑↑ Adaptive Planning ↑↑↑
 
     for candidate in shortlisted:
-
+    #  is a Python built-in function used to check whether 
+    # an object belongs to a particular class (type).
         if isinstance(candidate, dict):
             candidate_id = candidate.get("candidate_id")
         else:
