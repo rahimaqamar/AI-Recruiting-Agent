@@ -20,7 +20,9 @@ def parse_goal(goal: str) -> dict:
     plan = {
         "min_candidates_to_review": 10,
         "priority_skills": [],
-        "auto_broaden": False
+        "auto_broaden": False,
+        "required_skills": [],
+        "min_experience_years": None
     }
 
     goal_lower = goal.lower()
@@ -37,6 +39,25 @@ def parse_goal(goal: str) -> dict:
         plan["priority_skills"] = [
             s.strip() for s in re.split(r",|and", skills_text) if s.strip()
         ]
+
+    # "skill in X" / "skills that is X" / "with skills X" / "skilled in X"
+    skill_match = re.search(
+        r"skills?\s*(?:that is|that are|in|is|are|:)?\s*([a-zA-Z0-9\.\+\#\s,/]+?)(?:\.|$)",
+        goal_lower
+    )
+    if skill_match:
+        skills_text = skill_match.group(1)
+        plan["required_skills"] = [
+            s.strip() for s in re.split(r",|and", skills_text) if s.strip()
+        ]
+
+    # "N years of experience" / "N years experience"
+    exp_match = re.search(
+        r"(\d+)\s*\+?\s*years?\s*(?:of\s*)?experience",
+        goal_lower
+    )
+    if exp_match:
+        plan["min_experience_years"] = int(exp_match.group(1))
 
     # "broaden the search" jaisa koi instruction
     if "broaden" in goal_lower or "expand" in goal_lower or "fewer than" in goal_lower:
@@ -65,6 +86,8 @@ def planner_node(state: AgentState) -> AgentState:
     state["trace"].append(
         f"Adaptive plan: min_candidates={plan['min_candidates_to_review']}, "
         f"priority_skills={plan['priority_skills']}, "
+        f"required_skills={plan['required_skills']}, "
+        f"min_experience_years={plan['min_experience_years']}, "
         f"auto_broaden={plan['auto_broaden']}"
     )
 

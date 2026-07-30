@@ -262,20 +262,52 @@ def search_candidates(search_request, skip_explanation=False, top_k=None):
 
     results = []
 
-    for candidate in candidates:
+    db = get_db()
 
-        explanation = "" if skip_explanation else explain_match(
-            search_request.query,
-            candidate["resume_text"]
-        )
+    try:
+        for candidate in candidates:
 
-        results.append({
-            "candidate_id": candidate["candidate_id"],
-            "name": candidate["name"],
-            "similarity_score": candidate["similarity_score"],
-            "meets_filters": True,
-            "why_matched": explanation
-        })
+            explanation = "" if skip_explanation else explain_match(
+                search_request.query,
+                candidate["resume_text"]
+            )
+
+            # Fetch resume from database
+            resume = db.query(Resume).filter(
+                Resume.id == candidate["candidate_id"]
+            ).first()
+
+            skills = []
+            experience = 0
+            education = ""
+            location = ""
+
+            if resume:
+                if resume.skills:
+                    skills = [
+                        s.strip()
+                        for s in resume.skills.split(",")
+                        if s.strip()
+                    ]
+
+                experience = resume.experience
+                education = resume.education
+                location = resume.location
+
+            results.append({
+                "candidate_id": candidate["candidate_id"],
+                "name": candidate["name"],
+                "similarity_score": candidate["similarity_score"],
+                "meets_filters": True,
+                "why_matched": explanation,
+                "skills": skills,
+                "experience": experience,
+                "education": education,
+                "location": location
+            })
+
+    finally:
+        db.close()
 
     return {
         "query": search_request.query,
@@ -285,8 +317,6 @@ def search_candidates(search_request, skip_explanation=False, top_k=None):
             else {},
         "results": results
     }
-
-
 # ==========================================
 # Candidate Summary
 # ==========================================
@@ -992,54 +1022,3 @@ def get_all_jobs():
         })
 
     return results
-# search candidates
-def search_candidates(search_request, skip_explanation=False, top_k=None):
-
-    if top_k is None:
-        top_k = get_requested_count(search_request.query)
-
-    candidates = semantic_search(
-        query=search_request.query,
-        filters=search_request.filters,
-        top_k=top_k
-    )
-
-    results = []
-    db = get_db()
-
-    try:
-        for candidate in candidates:
-
-            explanation = "" if skip_explanation else explain_match(
-                search_request.query,
-                candidate["resume_text"]
-            )
-
-            # Fetch skills from DB
-            resume = db.query(Resume).filter(
-                Resume.id == candidate["candidate_id"]
-            ).first()
-
-            skills = []
-            if resume and resume.skills:
-                skills = [s.strip() for s in resume.skills.split(",") if s.strip()]
-
-            results.append({
-                "candidate_id": candidate["candidate_id"],
-                "name": candidate["name"],
-                "similarity_score": candidate["similarity_score"],
-                "meets_filters": True,
-                "why_matched": explanation,
-                "skills": skills          # naya field add kiya
-            })
-    finally:
-        db.close()
-
-    return {
-        "query": search_request.query,
-        "filters_applied":
-            search_request.filters.model_dump()
-            if search_request.filters
-            else {},
-        "results": results
-    }

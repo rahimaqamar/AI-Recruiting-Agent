@@ -70,8 +70,6 @@ class Resume(Base):
 
     location = Column(String)
 
-    category = Column(String)
-
     resume_text = Column(Text)
 
     file_name = Column(String)

@@ -25,15 +25,65 @@ def evaluator_node(state: AgentState) -> AgentState:
         for s in plan.get("priority_skills", [])
     ]
 
+    # Goal se nikale hue required skills (hard filter ke liye)
+    required_skills = [
+        s.lower()
+        for s in plan.get("required_skills", [])
+    ]
+
     # Goal based broadening instruction
     goal_auto_broaden = plan.get(
         "auto_broaden",
         False
     )
 
+    # ==========================================
+    # Required Skills Hard Filter (NEW)
+    # ==========================================
+    if required_skills:
+
+        filtered_candidates = []
+
+        for candidate in candidates:
+
+            if isinstance(candidate, dict):
+                candidate_skills = candidate.get("skills", [])
+                candidate_id = candidate.get("candidate_id")
+            else:
+                candidate_skills = getattr(candidate, "skills", [])
+                candidate_id = getattr(candidate, "candidate_id", None)
+
+            # Agar skills string hai (comma-separated), list mein convert karo
+            if isinstance(candidate_skills, str):
+                candidate_skills_lower = [
+                    s.strip().lower() for s in candidate_skills.split(",")
+                ]
+            elif candidate_skills:
+                candidate_skills_lower = [s.lower() for s in candidate_skills]
+            else:
+                candidate_skills_lower = []
+
+            has_all_required = all(
+                any(req in cs for cs in candidate_skills_lower)
+                for req in required_skills
+            )
+
+            if has_all_required:
+                filtered_candidates.append(candidate)
+            else:
+                state["trace"].append(
+                    f"Candidate {candidate_id} dropped — "
+                    f"missing required skill(s): {required_skills}"
+                )
+
+        state["trace"].append(
+            f"Hard filter on required_skills={required_skills}: "
+            f"{len(candidates)} -> {len(filtered_candidates)} candidates"
+        )
+
+        candidates = filtered_candidates
 
     shortlisted = []
-
 
     # ==========================================
     # Candidate Evaluation
@@ -52,7 +102,6 @@ def evaluator_node(state: AgentState) -> AgentState:
                 "similarity_score",
                 0
             )
-
 
         # ======================================
         # Priority Skills Boost
@@ -81,12 +130,14 @@ def evaluator_node(state: AgentState) -> AgentState:
                     None
                 )
 
-
-            candidate_skills_lower = [
-                s.lower()
-                for s in candidate_skills
-            ] if candidate_skills else []
-
+            if isinstance(candidate_skills, str):
+                candidate_skills_lower = [
+                    s.strip().lower() for s in candidate_skills.split(",")
+                ]
+            elif candidate_skills:
+                candidate_skills_lower = [s.lower() for s in candidate_skills]
+            else:
+                candidate_skills_lower = []
 
             matched_priority = [
                 skill
@@ -96,7 +147,6 @@ def evaluator_node(state: AgentState) -> AgentState:
                     for cs in candidate_skills_lower
                 )
             ]
-
 
             if matched_priority:
 
@@ -111,7 +161,6 @@ def evaluator_node(state: AgentState) -> AgentState:
                     f"{matched_priority}"
                 )
 
-
         # ======================================
         # Strong Candidate Threshold
         # ======================================
@@ -120,13 +169,11 @@ def evaluator_node(state: AgentState) -> AgentState:
 
             shortlisted.append(candidate)
 
-
     # ==========================================
     # Autonomous Broadening Decision
     # ==========================================
 
     strong_matches = len(shortlisted)
-
 
     if strong_matches < 3:
 
@@ -138,7 +185,6 @@ def evaluator_node(state: AgentState) -> AgentState:
             "Agent decided to broaden search."
         )
 
-
     else:
 
         state["auto_broaden"] = goal_auto_broaden
@@ -148,9 +194,7 @@ def evaluator_node(state: AgentState) -> AgentState:
             "found. No automatic broadening required."
         )
 
-
     should_broaden = state["auto_broaden"]
-
 
     # ==========================================
     # Broad Search
@@ -163,9 +207,8 @@ def evaluator_node(state: AgentState) -> AgentState:
             "Lowering similarity threshold."
         )
 
-
-        # Include weaker matches
-        shortlisted = [
+        # Include weaker matches (but still respect required_skills)
+        weak_matches = [
 
             c
 
@@ -188,6 +231,7 @@ def evaluator_node(state: AgentState) -> AgentState:
 
         ]
 
+        shortlisted = weak_matches
 
         # ======================================
         # Wider Re-search
@@ -199,7 +243,6 @@ def evaluator_node(state: AgentState) -> AgentState:
                 "Still insufficient matches. "
                 "Running wider search."
             )
-
 
             try:
 
@@ -213,7 +256,6 @@ def evaluator_node(state: AgentState) -> AgentState:
 
                 )
 
-
                 existing_ids = {
                     c.get(
                         "candidate_id"
@@ -222,13 +264,31 @@ def evaluator_node(state: AgentState) -> AgentState:
                     for c in shortlisted
                 }
 
-
                 for candidate in broader_results:
 
                     candidate_id = candidate.get(
                         "candidate_id"
                     )
 
+                    candidate_skills = candidate.get("skills", [])
+
+                    if isinstance(candidate_skills, str):
+                        candidate_skills_lower = [
+                            s.strip().lower() for s in candidate_skills.split(",")
+                        ]
+                    elif candidate_skills:
+                        candidate_skills_lower = [s.lower() for s in candidate_skills]
+                    else:
+                        candidate_skills_lower = []
+
+                    # Required skills ka check yahan bhi lagao broad search mein
+                    if required_skills:
+                        has_all_required = all(
+                            any(req in cs for cs in candidate_skills_lower)
+                            for req in required_skills
+                        )
+                        if not has_all_required:
+                            continue
 
                     if (
                         candidate_id
@@ -244,19 +304,16 @@ def evaluator_node(state: AgentState) -> AgentState:
                             candidate
                         )
 
-
                 state["trace"].append(
                     f"Broad search added candidates. "
                     f"Total candidates: {len(shortlisted)}"
                 )
-
 
             except Exception as e:
 
                 state["trace"].append(
                     f"Broad search failed: {str(e)}"
                 )
-
 
     else:
 
@@ -265,24 +322,20 @@ def evaluator_node(state: AgentState) -> AgentState:
             "Candidate quality is sufficient."
         )
 
-
     # ==========================================
     # Final Shortlist
     # ==========================================
 
     state["shortlisted_candidates"] = shortlisted
 
-
     state["trace"].append(
         f"Final shortlisted candidates: "
         f"{len(shortlisted)}"
     )
 
-
     state["trace"].append(
         f"Auto broaden decision: "
         f"{state.get('auto_broaden')}"
     )
-
 
     return state

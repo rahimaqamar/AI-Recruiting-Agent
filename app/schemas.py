@@ -70,7 +70,10 @@ class CandidateResult(BaseModel):
     similarity_score: float
     meets_filters: bool
     why_matched: str
-    
+    skills: List[str] = []
+    experience: Optional[float] = None
+    education: Optional[str] = None
+    location: Optional[str] = None
 
 
 # ==========================================

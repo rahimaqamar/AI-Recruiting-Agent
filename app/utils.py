@@ -162,37 +162,19 @@ def extract_experience(text):
 
 def extract_skills(text):
     """
-    Extract skills from the Skills section of Resume/Job PDF.
+    Extract skills using predefined skill list.
     """
 
-    text = text.replace("\r", "\n")
+    found_skills = []
 
-    # Find the Skills section
-    match = re.search(
-        r"(technical skills|skills|core competencies|competencies|expertise)(.*?)(experience|education|projects|certifications|languages|work experience|employment|references|$)",
-        text,
-        re.IGNORECASE | re.DOTALL,
-    )
+    lower_text = text.lower()
 
-    if not match:
-        return []
+    for skill in SKILLS:
 
-    skills_text = match.group(2)
+        if skill.lower() in lower_text:
+            found_skills.append(skill)
 
-    # Split by comma, bullet, newline, semicolon, pipe
-    skills = re.split(r"[,•;\n|]", skills_text)
-
-    cleaned = []
-
-    for skill in skills:
-        skill = skill.strip()
-
-        if len(skill) < 2:
-            continue
-
-        cleaned.append(skill)
-
-    return list(dict.fromkeys(cleaned))
+    return list(dict.fromkeys(found_skills))
 
 
 # ==========================================
@@ -203,27 +185,26 @@ def extract_skills(text):
 
 def extract_education(text):
 
-    pattern = re.compile(
-        r"(Bachelor(?:'s)?(?:\s+of\s+[A-Za-z &]+)?"
-        r"|Master(?:'s)?(?:\s+of\s+[A-Za-z &]+)?"
-        r"|B\.?S\.?(?:\s+[A-Za-z &]+)?"
-        r"|B\.?Sc\.?(?:\s+[A-Za-z &]+)?"
-        r"|B\.?Tech\.?(?:\s+[A-Za-z &]+)?"
-        r"|BBA(?:\s+[A-Za-z &]+)?"
-        r"|MBA(?:\s+[A-Za-z &]+)?"
-        r"|M\.?S\.?(?:\s+[A-Za-z &]+)?"
-        r"|M\.?Sc\.?(?:\s+[A-Za-z &]+)?"
-        r"|M\.?Tech\.?(?:\s+[A-Za-z &]+)?"
-        r"|Ph\.?D\.?(?:\s+[A-Za-z &]+)?"
-        r"|Doctorate(?:\s+in\s+[A-Za-z &]+)?"
-        r"|Diploma(?:\s+in\s+[A-Za-z &]+)?)",
-        re.IGNORECASE
-    )
+    patterns = [
+        r"BSCS",
+        r"BSSE",
+        r"BSIT",
+        r"BS Computer Science",
+        r"BS Software Engineering",
+        r"BS Information Technology",
+        r"Bachelor(?:'s)?(?:\s+of\s+[A-Za-z &]+)?",
+        r"Master(?:'s)?(?:\s+of\s+[A-Za-z &]+)?",
+        r"MSCS",
+        r"MSSE",
+        r"MBA",
+        r"PhD",
+        r"Diploma"
+    ]
 
-    matches = pattern.findall(text)
-
-    if matches:
-        return ", ".join(dict.fromkeys([m.strip() for m in matches]))
+    for pattern in patterns:
+        match = re.search(pattern, text, re.IGNORECASE)
+        if match:
+            return match.group()
 
     return "Unknown"
 

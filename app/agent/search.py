@@ -47,6 +47,25 @@ def search_node(state: AgentState) -> AgentState:
         filters = {}
     # ↑↑↑ Filtered Search setup ↑↑↑
 
+    # ↓↓↓ Plan (goal text se nikale hue) required skills ko bhi merge karo ↓↓↓
+    plan = state.get("plan", {})
+    plan_required_skills = plan.get("required_skills", [])
+
+    if plan_required_skills:
+        existing = filters.get("required_skills", [])
+        combined = list(set(
+            [s.lower() for s in existing] +
+            [s.lower() for s in plan_required_skills]
+        ))
+        filters["required_skills"] = combined
+        state["trace"].append(f"Merged goal skills into filters: {combined}")
+
+    plan_min_experience = plan.get("min_experience_years")
+    if plan_min_experience and not filters.get("min_experience_years"):
+        filters["min_experience_years"] = plan_min_experience
+        state["trace"].append(f"Applied goal-based min_experience_years: {plan_min_experience}")
+    # ↑↑↑
+
     # ↓↓↓ Graceful Tool Failure Handling ↓↓↓
     try:
         candidates = search_candidates_tool(
