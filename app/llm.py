@@ -332,4 +332,4 @@ def extract_result_count_with_llm(query):
     if match:
         return int(match.group())
 
-    return 5
+    return 
