@@ -23,10 +23,26 @@ embeddings = HuggingFaceEmbeddings(
 # ------------------------------------------
 # Connect ChromaDB
 # ------------------------------------------
+# FIX: pehle collection_metadata specify nahi tha, isliye Chroma default
+# L2 (Euclidean) distance use kar raha tha. Resume jaisi lambi, similar-
+# structure wali text ke liye L2 distance role/domain ka farak achhe se
+# pakad nahi paata — har resume (chahe kisi bhi field ka ho) ek jaisi
+# narrow distance range me aa jaata tha, isliye similarity_score bhi
+# sabka lagbhag same (0.75) aa raha tha, chahe query "backend developer"
+# ho aur candidate "Automobile Mechanic" ho.
+# Fix: cosine similarity space explicitly set kiya — text/semantic search
+# ke liye ye standard aur zyada accurate metric hai.
+#
+# IMPORTANT: ye setting sirf NAYE collection pe apply hoti hai. Agar
+# CHROMA_DB_DIR folder mein pehle se (L2-based) data stored hai, to use
+# delete karke saare resumes dobara upload/embed karne honge — warna
+# purana data galat metric ke saath hi reh jayega. Neeche 'clear_chroma_db.py'
+# script diya hai isi ke liye.
 
 vector_store = Chroma(
     persist_directory=CHROMA_DB_DIR,
-    embedding_function=embeddings
+    embedding_function=embeddings,
+    collection_metadata={"hnsw:space": "cosine"}
 )
 
 # ------------------------------------------
@@ -34,6 +50,13 @@ vector_store = Chroma(
 # ------------------------------------------
 #  Ye function services.py ke upload_resume() se call hota hai —
 #  usi jagah se ye saari values (resume ki structured info) aa rahi hain.
+#
+# FIX: duplicate-check add kiya. Pehle har call pe naya document add ho
+# jaata tha, chahe wahi candidate_id already ChromaDB me maujood ho
+# (jaise bulk_upload_resumes.py accidentally dobara chal jaye) — isliye
+# search results me same candidate (e.g. "AUTOMOBILE_1331") do baar
+# dikhta tha. Ab add karne se pehle check karte hain.
+
 def add_resume(
     candidate_id,
     name,
@@ -44,6 +67,15 @@ def add_resume(
     location,
   
 ):
+    # Duplicate check — agar ye candidate_id already ChromaDB me hai
+    # to dobara add mat karo.
+    existing = vector_store.get(
+        where={"candidate_id": candidate_id}
+    )
+
+    if existing and existing.get("ids"):
+        return
+
 # Resume ka text lo → ek standard Document format me pack karo (text + metadata) → ChromaDB me daal do, 
 # jo usse automatically embedding me convert karke
 # "meaning-searchable" bana deta hai.
@@ -215,8 +247,13 @@ def semantic_search(query, filters=None, top_k=None):
         if not passes_filters(metadata, filters):
             continue
 
+        # NOTE: ab collection cosine space use kar raha hai, isliye
+        # similarity_search_with_score() seedha cosine DISTANCE return
+        # karta hai (range roughly 0 to 2, kam = behtar match).
+        # similarity = 1 - distance se sahi 0-to-1 similarity milti hai
+        # (1 = perfect match, 0 = koi relation nahi).
         similarity = round(
-            1 / (1 + score),
+            1 - score,
             2
         )
 
