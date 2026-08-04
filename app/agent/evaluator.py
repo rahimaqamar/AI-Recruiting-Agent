@@ -19,10 +19,11 @@ def evaluator_node(state: AgentState) -> AgentState:
 
     state["status"] = "evaluating"
     state["trace"].append("Evaluating candidates...")
-
+# search wala candidates lo
     candidates = state.get("candidates", [])
 
     # Adaptive planning data
+    # planner ka plan lo
     plan = state.get("plan", {})
 
     priority_skills = [

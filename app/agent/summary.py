@@ -28,7 +28,7 @@ def summary_node(state: AgentState) -> AgentState:
     )
 
     summaries = []
-
+#    evaluator node na jo shortlist banai han us ko read karo
     shortlisted = state.get("shortlisted_candidates", [])
 
     # ↓↓↓ Adaptive Planning: hardcoded limit ki jagah goal-based plan se lo ↓↓↓
@@ -47,7 +47,8 @@ def summary_node(state: AgentState) -> AgentState:
     # through a list while also keeping track of the position (index) of each item.
     # number ka sath name 
     for index, candidate in enumerate(shortlisted, start=1):
-
+#    isinstance python build in function koi obj kis type ka han
+# search tool kabhi candidate ko dict return nahi karta
         if isinstance(candidate, dict):
             candidate_id = candidate.get("candidate_id")
         else:

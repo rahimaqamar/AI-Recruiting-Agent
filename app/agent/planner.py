@@ -1,6 +1,7 @@
 # Its job is to understand the recruiter's goal, create an adaptive plan, 
 # store it in AgentState, 
 # and pass the updated state to the next node (search.py).
+# extract skills experience and education and experience all nodes use this plan
 """
 Planner Node
 First node of the recruiting workflow.
@@ -12,7 +13,7 @@ import re
 # import the shared state
 from app.agent.agent_state import AgentState
 
-
+# Ye function recruiter ke goal ko read karta hai aur us se instructions nikalta hai.
 def parse_goal(goal: str) -> dict:
     """
     Goal text se recruiter ki instructions nikalta hai.
@@ -83,9 +84,11 @@ def planner_node(state: AgentState) -> AgentState:
     # ==========================================
     # Adaptive Planning
     # ==========================================
+    # yaha planner goal ko read karta han
     plan = parse_goal(state["goal"])
+    # plan bana han state ma save karta han
     state["plan"] = plan
-
+#  what plan the planner node created
     state["trace"].append(
         f"Adaptive plan: min_candidates={plan['min_candidates_to_review']}, "
         f"priority_skills={plan['priority_skills']}, "

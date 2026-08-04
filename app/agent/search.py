@@ -37,7 +37,7 @@ def search_node(state: AgentState) -> AgentState:
                 filters["min_experience_years"] = job.experience
             if job.location:
                 filters["location"] = job.location
-
+#    trace logging 
         if filters:
             state["trace"].append(f"Applying filters from job posting: {filters}")
 
